@@ -11,17 +11,20 @@
 parse_transform(Forms, _Options) ->
     Directives = directives(Forms),
     File = proplists:get_value(file, Directives, "default.js"),
-    Path = proplists:get_value(output, Directives, "."),
+    Path = proplists:get_value(output,
+                               Directives,
+                               application:get_env(output, ".")
+                              ),
     Macros = proplists:get_value(jsmacro, Directives,[]),
 
-    put(macros,Macros),
+    put(macros, Macros),
     put({macroargs, "match"}, []),
     put({macroargs, "lambda"}, []),
     Exp = proplists:get_value(js,Directives,[]),
     collect_vars(Forms, Macros),
 
     lager:debug("Macros ~p~nExp: ~p~n", [Macros, Exp]),
-    [ lager:debug("Signatures ~p: ~p~n", [Name,get({macroargs,Name})])
+    [ lager:debug("Signatures ~p: ~p~n", [Name,get({macroargs, Name})])
       || {Name, _}
       <- Macros
     ],
@@ -30,11 +33,11 @@ parse_transform(Forms, _Options) ->
     intermezzo(Forms, Macros, inline),
 
     [ lager:debug("Stack ~p: ~p~n", [Name, get({stack, Name})])
-      || {Name,_}
+      || {Name, _}
       <- Macros
     ],
     [ lager:debug("Inline ~p: ~s~n", [Name,get({inline,Name})])
-      || {Name,_}
+      || {Name, _}
       <- Macros
     ],
 
