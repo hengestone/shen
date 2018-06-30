@@ -352,11 +352,11 @@ exp({call, _X,
       [exp(VarAtom, compile), Name, par(Params, Mode)]
     );
 exp({remote, _XX,
-    {var, _Y, _Module}, {_, _Z, Name}}, _
-     Mode) ->
+    {var, _Y, _Module}, {_, _Z, Name}},
+     _Mode) ->
     io_lib:format("~s.~s", [string:to_lower(lists:concat([_Module])),
                             string:to_lower(lists:concat([Name]))
-                           ]),
+                           ]);
 exp({call, _X, {var, _XX, Name}, Params}, Mode) ->
     io_lib:format("~s(~s)", [string:to_lower(lists:concat([Name])),
                              par(Params,Mode)

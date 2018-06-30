@@ -1,12 +1,12 @@
 -module(sample).
 -compile({parse_transform, shen}).
--compile(export_all).
+-export([start/0, start2/2, fac/1, macro/3, main/0]).
 
 -output("priv").
 -js([start/0,start2/2,fac/1]).
 -jsmacro([macro/3]).
 
-macro(A,B,C) ->
+macro(A, B, C) ->
     X = document,
     jq(X),
     jq("document"),
@@ -16,7 +16,7 @@ macro(A,B,C) ->
          {pickle,'Bert':binary(B)},
          {linked,C}])).
 
-start2(X,Y) -> 
+start2(X, Y) ->
     F = fun(A) -> A:log("100") end,
     F(console),
     case X of
