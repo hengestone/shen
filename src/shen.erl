@@ -16,8 +16,8 @@ parse_transform(Forms, _Options) ->
                                application:get_env(output, ".")
                               ),
     Macros  = proplists:get_value(jsmacro, Directives,[]),
-    Prelude = proplists:get_value(prelude, Directives, nil),
-    Entry   = proplists:get_value(entry, Directives, nil),
+    Prelude = prelude(proplists:get_value(prelude, Directives, nil)),
+    Entry   = coda(proplists:get_value(entry, Directives, nil)),
 
     put(macros, Macros),
     put({macroargs, "match"}, []),
@@ -45,9 +45,9 @@ parse_transform(Forms, _Options) ->
 
     F = compile_macros(Forms, Macros),
     Result = lists:flatten([
-      prelude(),
+      Prelude,
       intermezzo(Forms, Exp, compile),
-      coda(Entry)
+      Entry
     ]),
 
     file:write_file(filename:join([Path, File]), list_to_binary(Result)),
@@ -59,25 +59,27 @@ directives(Forms) -> lists:flatten([ directive(F) || F <- Forms ]).
 
 %-----------------------------------------------------------------------------
 forms(File) ->
-  {ok, Forms} = epp:parse_file(File,[],[]),
+  {ok, Forms} = epp:parse_file(File, [], []),
   Forms.
 
 %-----------------------------------------------------------------------------
 prelude(Prelude) ->
-  io_lib:format("~n~s~n",["const pattern = window.matches.pattern;"]);
-  case Prelude of 
+  case Prelude of
     P when P == nil ->
-      ok;
+      "";
     _               ->
-      io_lib:format("~n~s~n",[Prelude]).
+      io_lib:format("~n~s~n", [Prelude])
+  end.
 
 
 %-----------------------------------------------------------------------------
 coda(Entry) ->
-  E when E == nil ->
-    ok.
-  _               ->
-    io_lib:format("~s();~n",[Entry]).
+  case Entry of
+    E when E == nil ->
+      "";
+    _               ->
+      io_lib:format("~s();~n", [Entry])
+  end.
 
 %-----------------------------------------------------------------------------
 intermezzo(Forms, Exp, Type) ->
@@ -87,7 +89,7 @@ intermezzo(Forms, Exp, Type) ->
   ].
 
 %-----------------------------------------------------------------------------
-compile_macros(Forms, Exp) -> [ xform(F, Exp,e xpand) || F <- Forms ].
+compile_macros(Forms, Exp) -> [ xform(F, Exp, expand) || F <- Forms ].
 
 %-----------------------------------------------------------------------------
 collect_vars(Forms, Exp) -> [ xform(F, Exp, vars) || F <- Forms ].
@@ -97,6 +99,8 @@ directive({attribute, _X, module, Name}) -> {file, atom_to_list(Name)++".js"};
 directive({attribute, _X, js, List})     -> {js, List};
 directive({attribute, _X, output, List}) -> {output, List};
 directive({attribute, _X, jsmacro,List}) -> {jsmacro, List};
+directive({attribute, _X, entry,  List}) -> {entry,   List};
+directive({attribute, _X, prelude,List}) -> {prelude, List};
 directive(_Form) -> [].
 
 %-----------------------------------------------------------------------------

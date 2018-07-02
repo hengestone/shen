@@ -1,8 +1,6 @@
-
-var pattern = window.matches.pattern;
-var start2 = pattern({
+const start2 = pattern({
 	'x,y': function(x,y) {
-		var f = function(a) {
+		const f = function(a) {
 		return a.log('100');
 	};
 		f(console);
@@ -15,14 +13,14 @@ var start2 = pattern({
 	}})
 )(x);
 	}});
-var start = pattern({
+const start = pattern({
 	'': function() {
 		start2(1,3);
-		var j = 5;
-		var n = fac(j);
+		const j = 5;
+		const n = fac(j);
 		return console.log('factorial ~p',[j,n]);
 	}});
-var fac = pattern({
+const fac = pattern({
 	'0': function(_0) {
 		return 1;
 	},	'n': function(n) {
