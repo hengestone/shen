@@ -5,7 +5,7 @@
 -output("priv").
 -js([start/0,start2/2,fac/1]).
 -jsmacro([macro/3]).
--entry("start").
+-postfix("start();").
 
 macro(A, B, C) ->
     X = document,

@@ -26,4 +26,5 @@ const fac = pattern({
 	},	'n': function(n) {
 		return n * fac(n - 1);
 	}});
+
 start();

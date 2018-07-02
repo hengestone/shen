@@ -16,8 +16,8 @@ parse_transform(Forms, _Options) ->
                                application:get_env(output, ".")
                               ),
     Macros  = proplists:get_value(jsmacro, Directives,[]),
-    Prelude = prelude(proplists:get_value(prelude, Directives, nil)),
-    Entry   = coda(proplists:get_value(entry, Directives, nil)),
+    Prelude = inject(proplists:get_value(prelude, Directives, nil)),
+    Postfix = inject(proplists:get_value(postfix, Directives, nil)),
 
     put(macros, Macros),
     put({macroargs, "match"}, []),
@@ -47,7 +47,7 @@ parse_transform(Forms, _Options) ->
     Result = lists:flatten([
       Prelude,
       intermezzo(Forms, Exp, compile),
-      Entry
+      Postfix
     ]),
 
     file:write_file(filename:join([Path, File]), list_to_binary(Result)),
@@ -63,22 +63,12 @@ forms(File) ->
   Forms.
 
 %-----------------------------------------------------------------------------
-prelude(Prelude) ->
-  case Prelude of
-    P when P == nil ->
+inject(Text) ->
+  case Text of
+    T when T == nil ->
       "";
     _               ->
-      io_lib:format("~n~s~n", [Prelude])
-  end.
-
-
-%-----------------------------------------------------------------------------
-coda(Entry) ->
-  case Entry of
-    E when E == nil ->
-      "";
-    _               ->
-      io_lib:format("~s();~n", [Entry])
+      io_lib:format("~n~s~n", [Text])
   end.
 
 %-----------------------------------------------------------------------------
@@ -99,7 +89,7 @@ directive({attribute, _X, module, Name}) -> {file, atom_to_list(Name)++".js"};
 directive({attribute, _X, js, List})     -> {js, List};
 directive({attribute, _X, output, List}) -> {output, List};
 directive({attribute, _X, jsmacro,List}) -> {jsmacro, List};
-directive({attribute, _X, entry,  List}) -> {entry,   List};
+directive({attribute, _X, postfix,  List}) -> {postfix,   List};
 directive({attribute, _X, prelude,List}) -> {prelude, List};
 directive(_Form) -> [].
 
