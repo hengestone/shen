@@ -15,12 +15,14 @@ parse_transform(Forms, _Options) ->
                                Directives,
                                application:get_env(output, ".")
                               ),
-    Macros = proplists:get_value(jsmacro, Directives,[]),
+    Macros  = proplists:get_value(jsmacro, Directives,[]),
+    Prelude = proplists:get_value(prelude, Directives, nil),
+    Entry   = proplists:get_value(entry, Directives, nil),
 
     put(macros, Macros),
     put({macroargs, "match"}, []),
     put({macroargs, "lambda"}, []),
-    Exp = proplists:get_value(js,Directives,[]),
+    Exp = proplists:get_value(js, Directives, []),
     collect_vars(Forms, Macros),
 
     lager:debug("Macros ~p~nExp: ~p~n", [Macros, Exp]),
@@ -45,7 +47,7 @@ parse_transform(Forms, _Options) ->
     Result = lists:flatten([
       prelude(),
       intermezzo(Forms, Exp, compile),
-      coda()
+      coda(Entry)
     ]),
 
     file:write_file(filename:join([Path, File]), list_to_binary(Result)),
@@ -61,23 +63,34 @@ forms(File) ->
   Forms.
 
 %-----------------------------------------------------------------------------
-prelude() -> io_lib:format("~n~s~n",["var pattern = window.matches.pattern;"]).
+prelude(Prelude) ->
+  io_lib:format("~n~s~n",["const pattern = window.matches.pattern;"]);
+  case Prelude of 
+    P when P == nil ->
+      ok;
+    _               ->
+      io_lib:format("~n~s~n",[Prelude]).
+
 
 %-----------------------------------------------------------------------------
-coda() -> io_lib:format("~s~n",["start();"]).
+coda(Entry) ->
+  E when E == nil ->
+    ok.
+  _               ->
+    io_lib:format("~s();~n",[Entry]).
 
 %-----------------------------------------------------------------------------
 intermezzo(Forms, Exp, Type) ->
   [ compile(F, Type)
-    || F={function,_,Name,Args,_}
+    || F = {function, _, Name, Args, _}
     <- Forms, lists:member({Name, Args}, Exp)
   ].
 
 %-----------------------------------------------------------------------------
-compile_macros(Forms,Exp) -> [ xform(F,Exp,expand) || F <- Forms ].
+compile_macros(Forms, Exp) -> [ xform(F, Exp,e xpand) || F <- Forms ].
 
 %-----------------------------------------------------------------------------
-collect_vars(Forms,Exp) -> [ xform(F,Exp,vars) || F <- Forms ].
+collect_vars(Forms, Exp) -> [ xform(F, Exp, vars) || F <- Forms ].
 
 %-----------------------------------------------------------------------------
 directive({attribute, _X, module, Name}) -> {file, atom_to_list(Name)++".js"};
@@ -100,7 +113,7 @@ compile({attribute, _X, _Word, _Name}, _)         -> "";
 compile({function, X, Name, Args, Clauses}, Type) ->
   function(Name, X, Args, Clauses, Type);
 compile({eof, _X}, _)                             -> "";
-compile(_Form,_)                                  -> ":-)".
+compile(_Form, _)                                  -> ":-)".
 
 
 % match    -- case clause
@@ -112,7 +125,7 @@ compile(_Form,_)                                  -> ":-)".
 %-----------------------------------------------------------------------------
 function(Name,X,Args,Clauses,Type) ->
   case Type of
-    compile -> [ io_lib:format("var ~s = pattern({~n", [ Name ]),
+    compile -> [ io_lib:format("const ~s = pattern({~n", [ Name ]),
                   string:join([ clause(Args,C,Type) || C <- Clauses ], ","),
                   io_lib:format("~s~n",["});"]) ];
     match   -> [ io_lib:format("pattern({~n",[]),
@@ -365,7 +378,7 @@ exp({call, _X, {var, _XX, Name}, Params}, Mode) ->
                              par(Params,Mode)
                             ]);
 exp({match, _X, Left, Right}, Type) ->
-    io_lib:format("var ~s = ~s",[exp(Left,Type),exp(Right,Type)]);
+    io_lib:format("const ~s = ~s",[exp(Left,Type),exp(Right,Type)]);
 
 % ------------- record/react
 exp({record_field,_X,{_,_,Name},Value},Mode) ->
