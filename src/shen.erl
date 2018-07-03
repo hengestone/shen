@@ -230,7 +230,7 @@ clause(Argc, {clause, _X, Argv, _Guard, Expressions}, compile) ->
         end ++
         exp(E, compile) ++ ";\n"
         || {E,N}
-        <- lists:zip(Expressions,lists:seq(1,length(Expressions)))
+        <- lists:zip(Expressions,lists:seq(1, length(Expressions)))
       ],
       io_lib:format("~s",["\t}"])
     ].
@@ -257,7 +257,7 @@ arg({string, _X, _Value}, N) ->
 arg({atom, _X, _Value}, N) ->
     io_lib:format("'~s'", [N]);
 arg({var, _X, Value}, _N) ->
-    io_lib:format("~s", [string:to_lower(atom_to_list(Value))]).
+    io_lib:format("~s", [atom_to_list(Value)]).
 
 %-----------------------------------------------------------------------------
 par(List, Mode) ->
@@ -318,7 +318,7 @@ exp(V = {var, _X, Value}, {inline, Name}) ->
          false -> exp(V,compile)
     end;
 exp({var, _X, Value}, compile) ->
-    io_lib:format("~s", [string:to_lower(atom_to_list(Value))]);
+    io_lib:format("~s", [atom_to_list(Value)]);
 
 exp({'case', X, Condition,Clauses}, Type) ->
     io_lib:format("(~s)(~s)",
@@ -385,30 +385,30 @@ exp({call, _X,
 exp({remote, _XX,
     {var, _Y, _Module}, {_, _Z, Name}},
      _Mode) ->
-    io_lib:format("~s.~s", [string:to_lower(lists:concat([_Module])),
-                            string:to_lower(lists:concat([Name]))
+    io_lib:format("~s.~s", [lists:concat([_Module]),
+                            lists:concat([Name])
                            ]);
 exp({call, _X, {var, _XX, Name}, Params}, Mode) ->
-    io_lib:format("~s(~s)", [string:to_lower(lists:concat([Name])),
+    io_lib:format("~s(~s)", [(lists:concat([Name]),
                              par(Params,Mode)
                             ]);
 exp({match, _X, Left, Right}, Type) ->
-    io_lib:format("const ~s = ~s",[exp(Left,Type),exp(Right,Type)]);
+    io_lib:format("const ~s = ~s",[exp(Left,Type),exp(Right, Type)]);
 
 % ------------- record/react
-exp({record_field,_X,{_,_,Name},Value},Mode) ->
-    io_lib:format("~s: ~s",[lists:concat([Name]),exp(Value,Mode)]);
-exp({record,_X,react,Fields},Mode) ->
-    L = [ io_lib:format("~s",[exp(F,Mode)]) || F <- Fields],
-    io_lib:format("React.createClass({~s});",[string:join(L,",\n")]);
-exp({record,_X,Tag,Fields},Mode) ->
-    case lists:member(Tag,[h1,'div',panel]) of
+exp({record_field, _X, {_, _,Name}, Value}, Mode) ->
+    io_lib:format("~s: ~s",[lists:concat([Name]), exp(Value, Mode)]);
+exp({record, _X,r eact, Fields}, Mode) ->
+    L = [ io_lib:format("~s",[exp(F, Mode)]) || F <- Fields],
+    io_lib:format("React.createClass({~s});", [string:join(L, ",\n")]);
+exp({record, _X, Tag, Fields},Mode) ->
+    case lists:member(Tag, [h1, 'div', panel]) of
       true ->
-        L = lists:flatten([ io_lib:format("~s",[exp(Value,Mode)])
-              || _F={record_field,_,{_,_,Name},Value} <- Fields, Name == body]),
-        io_lib:format("React.DOM.~s(null,~s);",[Tag,L]);
+        L = lists:flatten([ io_lib:format("~s", [exp(Value, Mode)])
+              || _F={record_field, _,{_, _, Name}, Value} <- Fields, Name == body]),
+        io_lib:format("React.DOM.~s(null,~s);", [Tag, L]);
       false -> skip end;
-exp({record,_X,{var,_,Var},react,Fields},Mode) ->
-    L = [ io_lib:format("~s",[exp(F,Mode)]) || F <- Fields],
-    io_lib:format("~s({~s});",[string:to_lower(lists:concat([Var])),L]);
-exp(X,_) -> X.
+exp({record, _X,{var, _, Var}, react, Fields}, Mode) ->
+    L = [ io_lib:format("~s", [exp(F, Mode)]) || F <- Fields],
+    io_lib:format("~s({~s});", [lists:concat([Var]), L]);
+exp(X, _) -> X.
