@@ -130,7 +130,7 @@ compile(_Form, _)                                  -> ":-)".
 function(Name, X, Args, Clauses, Type) ->
   case Type of
     compile -> [ io_lib:format("~nconst ~s = pattern({~n", [ Name ]),
-                  string:join([ clause(Args,C,Type) || C <- Clauses ], ","),
+                  string:join([ clause(Args, C, Type) || C <- Clauses ], ","),
                   io_lib:format("~s~n",["});"]) ];
     match   -> [ io_lib:format("pattern({~n",[]),
                   string:join([ clause(Args, C, {match,Name})
@@ -257,7 +257,7 @@ arg({string, _X, _Value}, N) ->
 arg({atom, _X, _Value}, N) ->
     io_lib:format("'~s'", [N]);
 arg({var, _X, Value}, _N) ->
-    io_lib:format("~s", [atom_to_list(Value)]).
+    io_lib:format("~s", [string:to_lower(atom_to_list(Value))]).
 
 %-----------------------------------------------------------------------------
 par(List, Mode) ->
@@ -393,7 +393,7 @@ exp({call, _X, {var, _XX, Name}, Params}, Mode) ->
                              par(Params,Mode)
                             ]);
 exp({match, _X, Left, Right}, Type) ->
-    io_lib:format("const ~s = ~s",[exp(Left,Type),exp(Right, Type)]);
+    io_lib:format("const ~s = ~s",[exp(Left, Type),exp(Right, Type)]);
 
 % ------------- record/react
 exp({record_field, _X, {_, _,Name}, Value}, Mode) ->
