@@ -15,6 +15,7 @@ const start2 = pattern({
 	}});
 const start = pattern({
 	'': function() {
+		h1({id: 'myproduct_id'});
 		start2(1,3);
 		const j = 5;
 		const n = fac(j);

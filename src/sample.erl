@@ -24,7 +24,10 @@ start2(X, Y) ->
         1 -> console:log([X,Y]);
         _ -> console:log("ok") end.
 
+h1(_) -> ok.
+
 start() ->
+    h1(#{id => "myproduct_id"}),
     start2(1,3),
     J = 5,
     N = fac(J),

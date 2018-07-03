@@ -250,25 +250,36 @@ arg({var, _X, Value}, _N) ->
     io_lib:format("~s", [string:to_lower(atom_to_list(Value))]).
 
 %-----------------------------------------------------------------------------
-par(List,Mode) ->
+par(List, Mode) ->
     io_lib:format("~s", [
       lists:flatten(
         string:join(
-          [exp(V,Mode) || V <- List],","))]).
+          [exp(V, Mode) || V <- List], ","))]).
 
 %-----------------------------------------------------------------------------
 % ------------- basic types
-exp({integer, _X,Value}, _) -> io_lib:format("~s",[integer_to_list(Value)]);
-exp({binary,  _X,Value}, _) -> io_lib:format("~s",[binary_to_list(Value)]);
-exp({string,  _X,Value}, _) -> io_lib:format("'~s'",[Value]);
-exp({atom,    _X,Value}, {inline,_}) -> io_lib:format("'~w'",[Value]);
-exp({atom,    _X,Value}, _) -> io_lib:format("~w",[Value]);
+exp({integer, _X, Value}, _) -> io_lib:format("~s", [integer_to_list(Value)]);
+exp({binary,  _X, Value}, _) -> io_lib:format("~s", [binary_to_list(Value)]);
+exp({string,  _X, Value}, _) -> io_lib:format("'~s'", [Value]);
+exp({atom,    _X, Value}, {inline, _}) -> io_lib:format("'~w'", [Value]);
+exp({atom,    _X, Value}, _) -> io_lib:format("~w",[Value]);
 
 % ------------- functions
 exp({'fun', X, {clauses, Value}}, {inline,Name}) ->
   function(Name, X, 0, Value, lambda);
 exp({'fun', X, {clauses, Value}}, _) ->
   function("lambda",X,0,Value,lambda);
+
+% ------------- map fields
+exp({map_field_assoc, _X, Exp1, Exp2}, Mode) ->
+  io_lib:format("~s: ~s",[exp(Exp1, Mode), exp(Exp2, Mode)]);
+
+% ------------- maps
+exp({map, _X, List}, Mode) ->
+  io_lib:format("{~s}",[
+    lists:flatten(
+      string:join(
+        [exp(V, Mode) || V <- List], ","))]);
 
 % ------------- misc
 exp({tuple, _X, List}, Mode) ->
@@ -318,7 +329,7 @@ exp({op, _X, Op, Left, Right}, Type) ->
     io_lib:format("~s ~s ~s", [exp(Left, Type), Op, exp(Right, Type)]);
 
 % ------------- call
-exp({call,_X,{atom, _Y, jq}, Params}, Mode) ->
+exp({call, _X,{atom, _Y, jq}, Params}, Mode) ->
     io_lib:format("~s(~s)",["$",par(Params,Mode)]);
 
 exp({call, _X, {atom, _Y, Name}, Params}, Mode) ->
