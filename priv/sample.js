@@ -1,34 +1,42 @@
 
+
+const get_types = function() {
+  return Object, Map, Array, String;
+}
+
+
 const start2 = pattern({
-	'x,y': function(x,y) {
-		const f = function(a) {
-		return a.log('100');
+	'X,Y': function(X,Y) {
+		const [Object,Map,_Array,_String] = get_types();
+		const MyMap = Object.create(Map);
+		const F = function(A) {
+		return A.log('100');
 	};
-		f(console);
+		F(console);
 		return (pattern({
 	'1': function() {
-		return console.log([x,y]);
+		return console.log([X,Y]);
 	},
 	'_': function() {
 		return console.log('ok');
 	}})
-)(x);
+)(X);
 	}});
 
 const start = pattern({
 	'': function() {
 		h1({id: 'myproduct_id'});
 		start2(1,3);
-		const j = 5;
-		const n = fac(j);
-		return console.log('factorial ~p',[j,n]);
+		const J = 5;
+		const N = fac(J);
+		return console.log('factorial ~p',[J,N]);
 	}});
 
 const fac = pattern({
 	'0': function(_0) {
 		return 1;
-	},	'n': function(n) {
-		return n * fac(n - 1);
+	},	'N': function(N) {
+		return N * fac(N - 1);
 	}});
 
 module.exports = {

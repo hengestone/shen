@@ -7,6 +7,14 @@
 -jsmacro([macro/3]).
 -postfix("start();").
 
+-prelude("
+const get_types = function() {
+  return Object, Map, Array, String;
+}
+").
+
+get_types() -> [object, map, array, string].
+
 macro(A, B, C) ->
     X = document,
     jq(X),
@@ -18,6 +26,8 @@ macro(A, B, C) ->
          {linked,C}])).
 
 start2(X, Y) ->
+    [Object, Map, _Array, _String] = get_types(),
+    MyMap = Object:create(Map),
     F = fun(A) -> A:log("100") end,
     F(console),
     case X of

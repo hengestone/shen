@@ -26,7 +26,7 @@ parse_transform(Forms, _Options) ->
     Exp = proplists:get_value(export, Directives, []),
     collect_vars(Forms, Macros),
 
-    lager:debugt("Macros ~p~nExp: ~p~n", [Directives, Exp]),
+    lager:debug("Macros ~p~nExp: ~p~n", [Directives, Exp]),
     [ lager:debug("Signatures ~p: ~p~n", [Name, get({macroargs, Name})])
       || {Name, _}
       <- Macros
@@ -389,7 +389,7 @@ exp({remote, _XX,
                             lists:concat([Name])
                            ]);
 exp({call, _X, {var, _XX, Name}, Params}, Mode) ->
-    io_lib:format("~s(~s)", [(lists:concat([Name]),
+    io_lib:format("~s(~s)", [lists:concat([Name]),
                              par(Params,Mode)
                             ]);
 exp({match, _X, Left, Right}, Type) ->
@@ -398,7 +398,7 @@ exp({match, _X, Left, Right}, Type) ->
 % ------------- record/react
 exp({record_field, _X, {_, _,Name}, Value}, Mode) ->
     io_lib:format("~s: ~s",[lists:concat([Name]), exp(Value, Mode)]);
-exp({record, _X,r eact, Fields}, Mode) ->
+exp({record, _X,react, Fields}, Mode) ->
     L = [ io_lib:format("~s",[exp(F, Mode)]) || F <- Fields],
     io_lib:format("React.createClass({~s});", [string:join(L, ",\n")]);
 exp({record, _X, Tag, Fields},Mode) ->
