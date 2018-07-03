@@ -22,11 +22,12 @@ parse_transform(Forms, _Options) ->
     put(macros, Macros),
     put({macroargs, "match"}, []),
     put({macroargs, "lambda"}, []),
-    Exp = proplists:get_value(js, Directives, []),
+    Js = proplists:get_value(js, Directives, []),
+    Exp = proplists:get_value(export, Directives, []),
     collect_vars(Forms, Macros),
 
-    lager:debug("Macros ~p~nExp: ~p~n", [Macros, Exp]),
-    [ lager:debug("Signatures ~p: ~p~n", [Name,get({macroargs, Name})])
+    lager:debugt("Macros ~p~nExp: ~p~n", [Directives, Exp]),
+    [ lager:debug("Signatures ~p: ~p~n", [Name, get({macroargs, Name})])
       || {Name, _}
       <- Macros
     ],
@@ -38,7 +39,7 @@ parse_transform(Forms, _Options) ->
       || {Name, _}
       <- Macros
     ],
-    [ lager:debug("Inline ~p: ~s~n", [Name,get({inline,Name})])
+    [ lager:debug("Inline ~p: ~s~n", [Name,get({inline, Name})])
       || {Name, _}
       <- Macros
     ],
@@ -46,7 +47,8 @@ parse_transform(Forms, _Options) ->
     F = compile_macros(Forms, Macros),
     Result = lists:flatten([
       Prelude,
-      intermezzo(Forms, Exp, compile),
+      intermezzo(Forms, Js, compile),
+      exports(Exp),
       Postfix
     ]),
 
@@ -72,6 +74,13 @@ inject(Text) ->
   end.
 
 %-----------------------------------------------------------------------------
+exports(Export) ->
+  io_lib:format("~nmodule.exports = {~s~n}~n", [
+    lists:flatten(
+      string:join(
+        [ io_lib:format("~n  ~s: ~s", [N, N]) || {N, _A} <- Export], ","))]).
+
+%-----------------------------------------------------------------------------
 intermezzo(Forms, Exp, Type) ->
   [ compile(F, Type)
     || F = {function, _, Name, Args, _}
@@ -85,12 +94,13 @@ compile_macros(Forms, Exp) -> [ xform(F, Exp, expand) || F <- Forms ].
 collect_vars(Forms, Exp) -> [ xform(F, Exp, vars) || F <- Forms ].
 
 %-----------------------------------------------------------------------------
-directive({attribute, _X, module, Name}) -> {file, atom_to_list(Name)++".js"};
-directive({attribute, _X, js, List})     -> {js, List};
-directive({attribute, _X, output, List}) -> {output, List};
-directive({attribute, _X, jsmacro,List}) -> {jsmacro, List};
-directive({attribute, _X, postfix,  List}) -> {postfix,   List};
-directive({attribute, _X, prelude,List}) -> {prelude, List};
+directive({attribute, _X, module,  Name}) -> {file, atom_to_list(Name)++".js"};
+directive({attribute, _X, export,  List}) -> {export,  List};
+directive({attribute, _X, js,      List}) -> {js,      List};
+directive({attribute, _X, output,  List}) -> {output,  List};
+directive({attribute, _X, jsmacro, List}) -> {jsmacro, List};
+directive({attribute, _X, postfix, List}) -> {postfix, List};
+directive({attribute, _X, prelude, List}) -> {prelude, List};
 directive(_Form) -> [].
 
 %-----------------------------------------------------------------------------
@@ -99,7 +109,7 @@ xform({function, X, Name, Args, Clauses}, Exp, Method) ->
       true  ->  function(Name, X, Args, Clauses, Method);
       false ->  {function, X, Name, Args, Clauses}
   end;
-xform(X,_Exp,_) -> X.
+xform(X, _Exp, _) -> X.
 
 %-----------------------------------------------------------------------------
 % compile  -- function declaration for compile
@@ -117,9 +127,9 @@ compile(_Form, _)                                  -> ":-)".
 % expand   -- macro expand
 
 %-----------------------------------------------------------------------------
-function(Name,X,Args,Clauses,Type) ->
+function(Name, X, Args, Clauses, Type) ->
   case Type of
-    compile -> [ io_lib:format("const ~s = pattern({~n", [ Name ]),
+    compile -> [ io_lib:format("~nconst ~s = pattern({~n", [ Name ]),
                   string:join([ clause(Args,C,Type) || C <- Clauses ], ","),
                   io_lib:format("~s~n",["});"]) ];
     match   -> [ io_lib:format("pattern({~n",[]),

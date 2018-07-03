@@ -1,3 +1,4 @@
+
 const start2 = pattern({
 	'x,y': function(x,y) {
 		const f = function(a) {
@@ -13,6 +14,7 @@ const start2 = pattern({
 	}})
 )(x);
 	}});
+
 const start = pattern({
 	'': function() {
 		h1({id: 'myproduct_id'});
@@ -21,11 +23,20 @@ const start = pattern({
 		const n = fac(j);
 		return console.log('factorial ~p',[j,n]);
 	}});
+
 const fac = pattern({
 	'0': function(_0) {
 		return 1;
 	},	'n': function(n) {
 		return n * fac(n - 1);
 	}});
+
+module.exports = {
+  start: start,
+  start2: start2,
+  fac: fac,
+  macro: macro,
+  main: main
+}
 
 start();
