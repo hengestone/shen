@@ -1,14 +1,12 @@
 
 
-const get_types = function() {
-  return Object, Map, Array, String;
-}
+const jObject = Object;
+const jMap    = Map;
 
 
 const start2 = pattern({
-	'X,Y': function(X,Y) {
-		const [Object,Map,_Array,_String] = get_types();
-		const MyMap = Object.create(Map);
+	'x,y': function(X,Y) {
+		const _MyMap = jObject.create(jMap);
 		const F = function(A) {
 		return A.log('100');
 	};
@@ -21,7 +19,7 @@ const start2 = pattern({
 		return console.log('ok');
 	}})
 )(X);
-	}});
+	}})
 
 const start = pattern({
 	'': function() {
@@ -30,14 +28,14 @@ const start = pattern({
 		const J = 5;
 		const N = fac(J);
 		return console.log('factorial ~p',[J,N]);
-	}});
+	}})
 
 const fac = pattern({
 	'0': function(_0) {
 		return 1;
-	},	'N': function(N) {
+	},	'n': function(N) {
 		return N * fac(N - 1);
-	}});
+	}})
 
 module.exports = {
   start: start,

@@ -8,12 +8,9 @@
 -postfix("start();").
 
 -prelude("
-const get_types = function() {
-  return Object, Map, Array, String;
-}
+const jObject = Object;
+const jMap    = Map;
 ").
-
-get_types() -> [object, map, array, string].
 
 macro(A, B, C) ->
     X = document,
@@ -26,8 +23,7 @@ macro(A, B, C) ->
          {linked,C}])).
 
 start2(X, Y) ->
-    [Object, Map, _Array, _String] = get_types(),
-    MyMap = Object:create(Map),
+    _MyMap = jObject:create(jMap),
     F = fun(A) -> A:log("100") end,
     F(console),
     case X of
