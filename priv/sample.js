@@ -15,7 +15,7 @@ const start2 = pattern({
 	'1': function() {
 		return console.log([X,Y]);
 	},
-	'_': function() {
+	'y': function() {
 		return console.log('ok');
 	}})
 )(X);

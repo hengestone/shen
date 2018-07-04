@@ -209,7 +209,7 @@ clause(_Argc,
 clause(_Argc, {clause, _X, Argv, _Guard, Expressions}, {match, _Name}) ->
     Match = string:join( [ exp(Arg, compile) || Arg <- Argv ], ","),
 
-    [ io_lib:format("\t'~s': function() {~n", [string:to_lower(Match)]),
+    [ io_lib:format("\t'~s': function() {~n", [string:lowercase(Match)]),
       ["\t\t" ++
         case N == length(Expressions) of
           true -> "return ";

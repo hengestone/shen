@@ -28,7 +28,7 @@ start2(X, Y) ->
     F(console),
     case X of
         1 -> console:log([X,Y]);
-        _ -> console:log("ok") end.
+        Y -> console:log("ok") end.
 
 h1(_) -> ok.
 
