@@ -4,38 +4,39 @@ const jObject = Object;
 const jMap    = Map;
 
 
-const start2 = pattern({
-	'x,y': function(X,Y) {
+const start2 = defmatch1(
+	clause([$@, $@], function(X, Y) {
 		const _MyMap = jObject.create(jMap);
 		const F = function(A) {
 		return A.log('100');
 	};
 		F(console);
-		return (pattern({
-	'1': function() {
-		return console.log([X,Y]);
-	},
-	'y': function() {
+		return (defmatch2(
+	clause([1], function() {
+		return console.log([X, Y]);
+	}),
+	clause([y], function() {
 		return console.log('ok');
-	}})
+	}))
 )(X);
-	}})
+	}))
 
-const start = pattern({
-	'': function() {
+const start = defmatch1(
+	clause([], function() {
 		h1({id: 'myproduct_id'});
-		start2(1,3);
+		start2(1, 3);
 		const J = 5;
 		const N = fac(J);
-		return console.log('factorial ~p',[J,N]);
-	}})
+		const [_A, _B] = start2(J, N);
+		return console.log('factorial ~p', [J, N]);
+	}))
 
-const fac = pattern({
-	'0': function(_0) {
+const fac = defmatch1(
+	clause([0], function(_0) {
 		return 1;
-	},	'n': function(N) {
+	}), 	clause([$@], function(N) {
 		return N * fac(N - 1);
-	}})
+	}))
 
 module.exports = {
   start: start,

@@ -34,9 +34,10 @@ h1(_) -> ok.
 
 start() ->
     h1(#{id => "myproduct_id"}),
-    start2(1,3),
+    start2(1, 3),
     J = 5,
     N = fac(J),
+    {_A, _B} = start2(J, N),
     console:log("factorial ~p", [J, N]).
 
 fac(0) -> 1;
