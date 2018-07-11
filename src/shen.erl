@@ -26,23 +26,23 @@ parse_transform(Forms, _Options) ->
     Exp = proplists:get_value(export, Directives, []),
     collect_vars(Forms, Macros),
 
-    lager:debug("Macros ~p~nExp: ~p~n", [Directives, Exp]),
-    [ lager:debug("Signatures ~p: ~p~n", [Name, get({macroargs, Name})])
-      || {Name, _}
-      <- Macros
-    ],
-    lager:debug("Forms ~p", [Forms]),
+    % lager:debug("Macros ~p~nExp: ~p~n", [Directives, Exp]),
+    % [ lager:debug("Signatures ~p: ~p~n", [Name, get({macroargs, Name})])
+    %   || {Name, _}
+    %   <- Macros
+    % ],
+    % lager:debug("Forms ~p", [Forms]),
 
     intermezzo(Forms, Macros, inline),
 
-    [ lager:debug("Stack ~p: ~p~n", [Name, get({stack, Name})])
-      || {Name, _}
-      <- Macros
-    ],
-    [ lager:debug("Inline ~p: ~s~n", [Name,get({inline, Name})])
-      || {Name, _}
-      <- Macros
-    ],
+    % [ lager:debug("Stack ~p: ~p~n", [Name, get({stack, Name})])
+    %   || {Name, _}
+    %   <- Macros
+    % ],
+    % [ lager:debug("Inline ~p: ~s~n", [Name,get({inline, Name})])
+    %   || {Name, _}
+    %   <- Macros
+    % ],
 
     F = compile_macros(Forms, Macros),
     Result = lists:flatten([
@@ -129,8 +129,7 @@ compile(_Form, _)                                 -> ":-)".
 %-----------------------------------------------------------------------------
 function(Name, X, Args, Clauses, Type) ->
   case Type of
-    compile ->  [io:format("~n----------------->~nclause(~n*~p, ~n*~p, ~n*compile)~n", [Args, C]) || C <- Clauses],
-                [ io_lib:format("~nconst ~s = defmatch1(~n", [ Name ]),
+    compile ->  [ io_lib:format("~nconst ~s = defmatch1(~n", [ Name ]),
                   string:join([ clause(Args, C, compile) || C <- Clauses ], ", "),
                   io_lib:format("~s~n", [")"]) 
                 ];
@@ -227,7 +226,6 @@ clause(_Argc, {clause, _X, Argv, _Guard, Expressions}, {match, _Name}) ->
     ];
 
 clause(Argc, {clause, _X, Argv, _Guard, Expressions}, compile) ->
-    [io:format("~n----------------->~nexp(~n  $~p,~n  $compile)~n", [Arg]) || Arg <- Argv],
     Match = string:join([ exp(Arg, bind) || Arg <- Argv ], ", "),
     Args  = string:join([
                 arg(Arg, N)
@@ -338,7 +336,7 @@ exp(V = {var, _X, Value}, {inline, Name}) ->
          false -> exp(V,compile)
     end;
 exp({var, _X, _Value}, bind) when is_atom (_Value) ->
-    io_lib:format("~s", [atom_to_list('$@')]);
+    io_lib:format("~s", [atom_to_list('$_')]);
 exp({var, _X, Value}, compile) ->
     io_lib:format("~s", [atom_to_list(Value)]);
 
@@ -362,7 +360,7 @@ exp({op, _X, Op, Left, Right}, Type) ->
 
 % ------------- call
 exp({call, _X,{atom, _Y, jq}, Params}, Mode) ->
-    io_lib:format("~s(~s)",["$",par(Params,Mode)]);
+    io_lib:format("~s(~s)",["$", par(Params, Mode)]);
 
 exp({call, _X, {atom, _Y, Name}, Params}, Mode) ->
   case {lists:member({Name,length(Params)},get(macros)),Mode} of

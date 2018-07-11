@@ -5,7 +5,7 @@ const jMap    = Map;
 
 
 const start2 = defmatch1(
-	clause([$@, $@], function(X, Y) {
+	clause([$_, $_], function(X, Y) {
 		const _MyMap = jObject.create(jMap);
 		const F = function(A) {
 		return A.log('100');
@@ -34,7 +34,7 @@ const start = defmatch1(
 const fac = defmatch1(
 	clause([0], function(_0) {
 		return 1;
-	}), 	clause([$@], function(N) {
+	}), 	clause([$_], function(N) {
 		return N * fac(N - 1);
 	}))
 
