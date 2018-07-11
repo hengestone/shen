@@ -129,11 +129,11 @@ compile(_Form, _)                                 -> ":-)".
 %-----------------------------------------------------------------------------
 function(Name, X, Args, Clauses, Type) ->
   case Type of
-    compile ->  [ io_lib:format("~nconst ~s = defmatch1(~n", [ Name ]),
+    compile ->  [ io_lib:format("~nconst ~s = defmatch(~n", [ Name ]),
                   string:join([ clause(Args, C, compile) || C <- Clauses ], ", "),
                   io_lib:format("~s~n", [")"]) 
                 ];
-    match   -> [ io_lib:format("defmatch2(~n",[]),
+    match   -> [ io_lib:format("defmatch(~n",[]),
                   string:join([ clause(Args, C, {match, Name})
                                 || C
                                 <- Clauses

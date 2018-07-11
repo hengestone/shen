@@ -4,14 +4,14 @@ const jObject = Object;
 const jMap    = Map;
 
 
-const start2 = defmatch1(
+const start2 = defmatch(
 	clause([$_, $_], function(X, Y) {
 		const _MyMap = jObject.create(jMap);
 		const F = function(A) {
 		return A.log('100');
 	};
 		F(console);
-		return (defmatch2(
+		return (defmatch(
 	clause([1], function() {
 		return console.log([X, Y]);
 	}),
@@ -21,7 +21,7 @@ const start2 = defmatch1(
 )(X);
 	}))
 
-const start = defmatch1(
+const start = defmatch(
 	clause([], function() {
 		h1({id: 'myproduct_id'});
 		start2(1, 3);
@@ -31,7 +31,7 @@ const start = defmatch1(
 		return console.log('factorial ~p', [J, N]);
 	}))
 
-const fac = defmatch1(
+const fac = defmatch(
 	clause([0], function(_0) {
 		return 1;
 	}), 	clause([$_], function(N) {
