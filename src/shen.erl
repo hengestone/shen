@@ -82,7 +82,6 @@ exports(Export) ->
 
 %-----------------------------------------------------------------------------
 intermezzo(Forms, Exp, Type) ->
-  io:format("intermezzo: Forms=~p~n", [Forms]),
   {_Variants, Output, _FinalType} =
     collect_function(
       [],
@@ -95,61 +94,25 @@ intermezzo(Forms, Exp, Type) ->
         ]
       )
     ),
-  io:format("intermezzo: Output=~n", []),
-  show_output(Output),
   Output.
 
-show_output(Output) ->
-  io:format("~p", [lists:flatten(Output)]),
-  io:format("~n").
-
-
 collect_function({function, _, FuncName, _Args, _} = Form, {Variants, Output, Type}) ->
-  io:format("collect_function: main function ------------------------~n"),
-  io:format("Type=~p, Form=~p~n", [Type, Form]),
-  io:format("Variants=~p~n", [Variants]),
   case Variants of
     [] ->
-      io:format("collect_function: case 1~n"),                  % Nothing, just push it on the stack
       {[Form], Output, Type};
     [{function, _, Name, _, _} | _] when Name == FuncName ->  % Same as previous item
-      io:format("collect_function: case 2~n"),
       {[Form | Variants], Output, Type};
     _ ->
-      io:format("collect_function: case 3~n"),
       {[Form], Output ++ compile(Variants, Type), Type}
   end;
 
 collect_function(Form, {[], Output, Type}) ->
-  io:format("collect_function: case 4~n"),
-  io:format("Form=~p~n", [Form]),
-  io:format("Output=~n"),
-  show_output(Output),
-  io:format("Variants=[]~n"),
   {[Form], Output, Type};
-
 collect_function([], {[], Output, Type}) ->
-  io:format("collect_function: case 5~n"),
-  io:format("Type=~p, Form=[]~n", [Type]),
-  io:format("Output=~n"),
-  show_output(Output),
-  io:format("Variants=[]~n", []),
   {[], Output, Type};
-
 collect_function([], {Variants, Output, Type}) ->
-  io:format("collect_function: case 6~n"),
-  io:format("Type=~p, Form=[]~n", [Type]),
-  io:format("Output=~n"),
-  show_output(Output),
-  io:format("Variants=~p~n", [Variants]),
   {[], Output ++ compile(Variants, Type), Type};
-
 collect_function(Form, {Variants, Output, Type}) ->
-  io:format("collect_function: case 7~n"),
-  io:format("Form=~p~n", [Form]),
-  io:format("Output=~n"),
-  show_output(Output),
-  io:format("Variants=~p~n", [Variants]),
   {[Form], Output ++ compile(Variants, Type), Type}.
 
 
@@ -181,8 +144,7 @@ xform(X, _Exp, _) -> X.
 % compile  -- function declaration for compile
 compile({attribute, _X, _Word, _Name}, _)         -> [];
 
-compile({function, X, Name, Args, Clauses} = Sig, Type) ->
-  io:format("-function ----------------------------------------------------~n~p~n", [Sig]),
+compile({function, X, Name, Args, Clauses}, Type) ->
   function(Name, X, Args, Clauses, Type);
 compile([{function, _LineNo, Name, _Args, _Clauses}| _] = Set, compile) ->
   [ io_lib:format("~nconst ~s = defmatch(", [ Name ]),
@@ -193,13 +155,10 @@ compile([{function, _LineNo, Name, _Args, _Clauses}| _] = Set, compile) ->
     ],
     io_lib:format("~s~n", [")"])
   ];
-  % function(Name, X, Args, Clauses, Type);
 compile([{function, _LineNo, _Name, _Args, _Clauses}| _] = Set, Type) ->
   [compile(Argv, Type) || Argv <- Set];
-
 compile({eof, _X}, _)                             -> "";
 compile([Form], Type)                                 ->
-  io:format("Smiley Type= ~p, Form=~p~n", [Type, Form]),
   compile(Form, Type).
 
 
@@ -211,8 +170,6 @@ compile([Form], Type)                                 ->
 
 %-----------------------------------------------------------------------------
 function(Name, _X, Args, Clauses, compile) ->
-    %io:format("Args=~p~n", [Args]),
-    %io:format("Clauses=~p~n", [Clauses]),
     [ io_lib:format("~nconst ~s = defmatch(~n", [ Name ]),
       string:join([ clause(Args, C, compile) || C <- Clauses ], ", "),
       io_lib:format("~s~n", [")"])
@@ -281,10 +238,8 @@ clause(_Argc,
     put({macroargs, Name}, [ XName || {var, _, XName} <- Argv]),
     C;
 clause(_Argc,
-       {clause, X, Argv, Guard, _Expressions} = Args,
+       {clause, X, Argv, Guard, _Expressions},
        {macroexpand, Name}) ->
-    io:format("~n----------- macroexpand Name=~p, Args=~n~p~n", [Name, Args]),
-    io:format("~n----------- get(inline, ~s) = ~p~n", [Name, get({inline, Name})]),
 
     {clause, X,
         Argv,
@@ -300,7 +255,7 @@ clause(_Argc,
 clause(_Argc,
        {clause, _X, _Argv ,_Guard, Expressions},
        {inline, Name}) ->
-    io:format("clause inline~n", []),
+
     put({stack, Name}, []),
     R = [ exp(E, {inline, Name}) ++ ";\n" || E <- Expressions ],
     put({inline, Name}, R),
